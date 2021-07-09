@@ -36,15 +36,15 @@ class RootDialog(ComponentDialog):
             ),
         ]
 
-        # This defines an address dialog that collects street, city and zip properties.
-        address_slots = [
+        # This defines an era dialog that collects  genre and favartists properties.
+        era_slots = [
             SlotDetails(
-                name="street",
+                name="era",
                 dialog_id="text",
                 prompt="What is your preferred era of music?",
             ),
-            SlotDetails(name="city", dialog_id="text", prompt="What Genre do you like the best?"),
-            SlotDetails(name="zip", dialog_id="text", prompt="Any favorite artists?"),
+            SlotDetails(name="genre", dialog_id="text", prompt="What Genre do you like the best?"),
+            SlotDetails(name="favartists", dialog_id="text", prompt="Any favorite artists?"),
         ]
 
         # Dialogs can be nested and the slot filling dialog makes use of that. In this example some of the child
@@ -60,11 +60,11 @@ class RootDialog(ComponentDialog):
                 prompt="How are you feeling today?",
                 retry_prompt="Be as specific as you can be! We will use this information to suggest songs that best suit your mood :)",
             ),
-            SlotDetails(name="address", dialog_id="address"),
+            SlotDetails(name="era", dialog_id="era"),
         ]
 
         # Add the various dialogs that will be used to the DialogSet.
-        self.add_dialog(SlotFillingDialog("address", address_slots))
+        self.add_dialog(SlotFillingDialog("era", era_slots))
         self.add_dialog(SlotFillingDialog("fullname", fullname_slots))
         self.add_dialog(SlotFillingDialog("feel",slots))
         self.add_dialog(TextPrompt("text"))
@@ -94,17 +94,17 @@ class RootDialog(ComponentDialog):
         # To demonstrate that the slot dialog collected all the properties we will echo them back to the user.
         if isinstance(step_context.result, dict) and len(step_context.result) > 0:
             fullname: Dict[str, object] = step_context.result["fullname"]
-            shoe_size: float = step_context.result["feel"]
-            address: dict = step_context.result["address"]
+            feeling: float = step_context.result["feel"]
+            era: dict = step_context.result["era"]
 
             # store the response on UserState
             obj: dict = await self.user_state_accessor.get(step_context.context, dict)
             obj["data"] = {}
             obj["data"]["fullname"] = f"{fullname.get('first')} {fullname.get('last')}"
-            obj["data"]["feel"] = f"{shoe_size}"
+            obj["data"]["feel"] = f"{feeling}"
             obj["data"][
-                "address"
-            ] = f"{address['street']}, {address['city']}, {address['zip']}"
+                "era"
+            ] = f"{era['era']}, {era['genre']}, {era['favartists']}"
 
             # show user the values
             await step_context.context.send_activity(
@@ -114,20 +114,23 @@ class RootDialog(ComponentDialog):
                 MessageFactory.text(obj["data"]["feel"])
             )
             await step_context.context.send_activity(
-                MessageFactory.text(obj["data"]["address"])
+                MessageFactory.text(obj["data"]["era"])
             )
+            #change1 
+            with open('info.txt', 'w') as f:
+                f.write(f"{fullname.get('first')} {fullname.get('last')}, {feeling}, {era['era']}, {era['genre']}, {era['favartists']}")
 
         return await step_context.end_dialog()
 
     # @staticmethod
-    # async def shoe_size_validator(prompt_context: PromptValidatorContext) -> bool:
+    # async def feeling_validator(prompt_context: PromptValidatorContext) -> bool:
     #     if not prompt_context.recognized.value:
     #         return False
 
-    #     shoe_size = round(prompt_context.recognized.value, 1)
+    #     feeling = round(prompt_context.recognized.value, 1)
 
     #     # show sizes can range from 0 to 16, whole or half sizes only
-    #     if 0 <= shoe_size <= 16 and (shoe_size * 2) % 1 == 0:
-    #         prompt_context.recognized.value = shoe_size
+    #     if 0 <= feeling <= 16 and (feeling * 2) % 1 == 0:
+    #         prompt_context.recognized.value = feeling
     #         return True
     #     return False
